@@ -4,12 +4,11 @@ pytest tests/test_app.py
 import os
 import sys
 
-import pytest
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from app import create_app
-from extensions import db as _db
+import pytest  # noqa: E402
+from app import create_app  # noqa: E402
+from extensions import db as _db  # noqa: E402
 
 
 @pytest.fixture(scope="session")
