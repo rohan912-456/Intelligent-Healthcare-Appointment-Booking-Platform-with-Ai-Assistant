@@ -19,7 +19,7 @@ class Config:
     MAIL_ENABLED = bool(os.getenv("MAIL_USERNAME"))
 
     # API keys
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
     GOOGLE_MAPS_KEY = os.getenv("GOOGLE_MAPS_KEY", "")
 
     # Admin seed

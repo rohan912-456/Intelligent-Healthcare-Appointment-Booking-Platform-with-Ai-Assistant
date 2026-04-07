@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    role = db.Column(db.String(20), default="patient")
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     bookings = db.relationship("Booking", backref="user", lazy=True)
 
@@ -27,6 +28,8 @@ class User(UserMixin, db.Model):
 class Doctor(db.Model):
     __tablename__ = "doctors"
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, unique=True)
+    user = db.relationship("User", backref=db.backref("doctor_profile", uselist=False))
     name = db.Column(db.String(120), nullable=False)
     specialty = db.Column(db.String(100), default="General Physician")
     hospital = db.Column(db.String(200), nullable=False)
@@ -60,7 +63,7 @@ class Booking(db.Model):
     appointment_date = db.Column(db.Date, nullable=False)
     appointment_time = db.Column(db.String(10), nullable=False)
     reason = db.Column(db.Text, default="")
-    status = db.Column(db.String(20), default="confirmed")  # confirmed, cancelled
+    status = db.Column(db.String(20), default="confirmed")  # confirmed, cancelled, completed
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):

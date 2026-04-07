@@ -30,10 +30,29 @@ def dashboard():
         "messages": ContactMessage.query.count(),
         "confirmed": Booking.query.filter_by(status="confirmed").count(),
         "cancelled": Booking.query.filter_by(status="cancelled").count(),
+        "completed": Booking.query.filter_by(status="completed").count(),
     }
     recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(10).all()
     messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).limit(5).all()
     return render_template("admin/dashboard.html", stats=stats, recent_bookings=recent_bookings, messages=messages)
+
+
+@admin_bp.route("/messages")
+@admin_required
+def messages():
+    page = request.args.get("page", 1, type=int)
+    all_messages = ContactMessage.query.order_by(ContactMessage.created_at.desc()).paginate(page=page, per_page=15)
+    return render_template("admin/messages.html", messages=all_messages)
+
+
+@admin_bp.route("/messages/delete/<int:message_id>", methods=["POST"])
+@admin_required
+def delete_message(message_id):
+    msg = ContactMessage.query.get_or_404(message_id)
+    db.session.delete(msg)
+    db.session.commit()
+    flash("Message deleted successfully.", "success")
+    return redirect(url_for("admin.messages"))
 
 
 @admin_bp.route("/doctors")

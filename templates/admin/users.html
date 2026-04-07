@@ -27,9 +27,13 @@
             <td class="small text-muted">{{ u.email }}</td>
             <td class="small">{{ u.bookings|length }}</td>
             <td>
-              <span class="badge rounded-pill {{ 'bg-warning text-dark' if u.is_admin else 'bg-light text-dark border' }}">
-                {{ 'Admin' if u.is_admin else 'User' }}
-              </span>
+              {% if u.is_admin %}
+                <span class="badge rounded-pill bg-warning text-dark px-3 mt-1">Admin</span>
+              {% elif u.doctor_profile %}
+                <span class="badge rounded-pill bg-info text-white px-3 mt-1">Medical Professional</span>
+              {% else %}
+                <span class="badge rounded-pill bg-light text-dark border px-3 mt-1">Patient</span>
+              {% endif %}
             </td>
             <td class="small text-muted">{{ u.created_at.strftime('%d %b %Y') }}</td>
           </tr>

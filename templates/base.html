@@ -27,9 +27,12 @@
         <li class="nav-item"><a class="nav-link" href="{{ url_for('booking.book') }}"><i class="bi bi-calendar-plus me-1"></i>Book</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ url_for('main.contact') }}"><i class="bi bi-envelope me-1"></i>Contact</a></li>
         {% if current_user.is_authenticated %}
-          <li class="nav-item"><a class="nav-link" href="{{ url_for('booking.my_bookings') }}"><i class="bi bi-journal-medical me-1"></i>My Bookings</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('booking.dashboard') }}"><i class="bi bi-journal-medical me-1"></i>Booking Dashboard</a></li>
           {% if current_user.is_admin %}
           <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i>Admin</a></li>
+          {% endif %}
+          {% if current_user.role == 'doctor' %}
+          <li class="nav-item"><a class="nav-link text-info" href="{{ url_for('doctor.dashboard') }}"><i class="bi bi-person-badge me-1"></i>Doctor Portal</a></li>
           {% endif %}
           <li class="nav-item ms-lg-2">
             <a class="btn btn-outline-light btn-sm px-3" href="{{ url_for('auth.logout') }}">
@@ -111,7 +114,7 @@
         <i class="bi bi-send-fill"></i>
       </button>
     </div>
-    <div class="text-end mt-1" style="font-size:.68rem;color:#adb5bd">Powered by OpenAI · Not medical advice</div>
+    <div class="text-end mt-1" style="font-size:.68rem;color:#adb5bd">Powered by Gemini · Not medical advice</div>
   </div>
 </div>
 

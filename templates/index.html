@@ -59,7 +59,18 @@
       <h2 class="section-title">Meet Our Doctors</h2>
       <p class="text-muted">Expert care across multiple specialties at top Nagpur hospitals</p>
     </div>
-    <div class="row g-4">
+    
+    <!-- Live Search Filter -->
+    <div class="row justify-content-center mb-5">
+      <div class="col-md-6 col-lg-5">
+        <div class="position-relative shadow-sm rounded-pill">
+          <input type="text" id="doctorSearch" class="form-control form-control-lg rounded-pill ps-5 border-0 bg-white" placeholder="Search by name or specialty...">
+          <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 text-muted"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row g-4" id="doctorsGrid">
       {% set specialty_icons = {
         'Cardiologist': 'bi-heart-pulse',
         'General Physician': 'bi-person-lines-fill',
@@ -68,7 +79,7 @@
         'Pulmonologist': 'bi-lungs'
       } %}
       {% for doc in doctors %}
-      <div class="col-md-6 col-lg-4">
+      <div class="col-md-6 col-lg-4 doc-item" data-name="{{ doc.name|lower }}" data-specialty="{{ doc.specialty|lower }}">
         <div class="doctor-card h-100">
           <div class="doctor-card-top">
             <div class="doc-avatar">
@@ -196,4 +207,52 @@ function initMap() {
 </script>
 <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ maps_key }}&callback=initMap"></script>
 {% endif %}
+
+<script>
+  // Live Search for Doctors
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('doctorSearch');
+    if(searchInput) {
+      searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        const docItems = document.querySelectorAll('.doc-item');
+        
+        docItems.forEach(function(item) {
+          const name = item.getAttribute('data-name');
+          const specialty = item.getAttribute('data-specialty');
+          
+          if(name.includes(query) || specialty.includes(query)) {
+            item.style.display = '';
+            // Add slight animation
+            item.animate([
+              { opacity: 0, transform: 'scale(0.95)' },
+              { opacity: 1, transform: 'scale(1)' }
+            ], { duration: 300, easing: 'ease-out' });
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    }
+
+    // Lazy Loading Tool (IntersectionObserver)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = 1;
+          entry.target.style.transform = 'translateY(0)';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    const lazyItems = document.querySelectorAll('.doc-item');
+    lazyItems.forEach(item => {
+      item.style.opacity = 0;
+      item.style.transform = 'translateY(20px)';
+      item.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+      observer.observe(item);
+    });
+  });
+</script>
 {% endblock %}

@@ -84,11 +84,14 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
 
 /* Floating card in hero */
 .floating-card {
-  background: rgba(255,255,255,.95); backdrop-filter: blur(12px);
-  border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,.15);
-  min-width: 240px;
-  animation: float 3s ease-in-out infinite;
+  background: rgba(255,255,255,0.25); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  min-width: 240px; color: #fff;
+  animation: float 4s ease-in-out infinite;
 }
+.floating-card .text-muted { color: rgba(255,255,255,0.85) !important; }
+.floating-card .bg-success { background-color: #28a745 !important; }
 @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 .doc-avatar-sm {
   width: 38px; height: 38px; border-radius: 10px;
@@ -109,9 +112,9 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
 .doctor-card {
   background: #fff; border-radius: var(--radius);
   box-shadow: var(--card-shadow); border: 1px solid #e8eef8;
-  overflow: hidden; transition: transform .22s, box-shadow .22s;
+  overflow: hidden; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
 }
-.doctor-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(13,110,253,.18); }
+.doctor-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 16px 48px rgba(13,110,253,.20); }
 .doctor-card-top {
   background: linear-gradient(135deg, var(--hero-start), #1565c0);
   padding: 28px 20px; display: flex; justify-content: space-between; align-items: flex-start;
@@ -227,9 +230,10 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
 .chat-sidebar {
   position: fixed; top: 0; right: -400px;
   width: 370px; height: 100vh;
-  background: rgba(255,255,255,.97); backdrop-filter: blur(14px);
-  border-left: 1px solid #dee2e6;
+  background: rgba(255,255,255,0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-left: 1px solid rgba(255,255,255,0.4);
   transition: right .35s cubic-bezier(.4,0,.2,1);
+  box-shadow: -8px 0 32px rgba(0,0,0,0.1);
   z-index: 3000; display: flex; flex-direction: column;
 }
 .chat-sidebar.open { right: 0; }
@@ -253,7 +257,7 @@ h1,h2,h3,h4,h5,h6 { font-family: var(--font-head); }
 
 .chat-body {
   flex: 1; overflow-y: auto; padding: 16px;
-  scroll-behavior: smooth; background: #f8faff;
+  scroll-behavior: smooth; background: transparent;
 }
 .chat-body::-webkit-scrollbar { width: 4px; }
 .chat-body::-webkit-scrollbar-track { background: transparent; }

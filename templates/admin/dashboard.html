@@ -22,12 +22,24 @@
     ] %}
     <div class="col-6 col-md-4 col-xl-2">
       <div class="admin-stat-card rounded-4 p-3 bg-white shadow-sm text-center">
-        <div class="admin-stat-icon text-{{ item[3] }} mb-2"><i class="bi {{ item[1] }}"></i></div>
-        <div class="fw-bold fs-4">{{ item[2] }}</div>
+        <div class="admin-stat-icon text-{{ item[3] }} mb-2"><i class="bi {{ item[2] }}"></i></div>
+        <div class="fw-bold fs-4">{{ item[1] }}</div>
         <div class="text-muted small">{{ item[0] }}</div>
       </div>
     </div>
     {% endfor %}
+  </div>
+
+  <!-- Chart.js Visualization Row -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill me-2 text-info"></i>Booking Analytics</h6>
+        <div style="height: 300px; width: 100%;">
+          <canvas id="bookingsChart"></canvas>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="row g-4">
@@ -79,8 +91,9 @@
     <!-- Recent Messages -->
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm rounded-4 h-100">
-        <div class="card-header bg-transparent border-0 pt-3 pb-0">
+        <div class="card-header bg-transparent border-0 pt-3 pb-0 d-flex justify-content-between align-items-center">
           <h6 class="fw-bold mb-0"><i class="bi bi-envelope me-2 text-warning"></i>Recent Messages</h6>
+          <a href="{{ url_for('admin.messages') }}" class="btn btn-sm btn-outline-warning rounded-3">View All</a>
         </div>
         <div class="card-body">
           {% for m in messages %}
@@ -115,5 +128,38 @@
     </div>
     {% endfor %}
   </div>
-</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('bookingsChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Confirmed', 'Completed', 'Cancelled'],
+          datasets: [{
+            data: [{{ stats.confirmed }}, {{ stats.completed|default(0) }}, {{ stats.cancelled }}],
+            backgroundColor: [
+              'rgba(13, 110, 253, 0.8)',
+              'rgba(40, 167, 69, 0.8)',
+              'rgba(220, 53, 69, 0.8)'
+            ],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          cutout: '70%'
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}

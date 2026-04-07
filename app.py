@@ -27,12 +27,13 @@ def create_app(env=None):
     limiter.init_app(app)
 
     # Register blueprints
-    from routes import main_bp, auth_bp, booking_bp, chat_bp, admin_bp
+    from routes import main_bp, auth_bp, booking_bp, chat_bp, admin_bp, doctor_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(booking_bp)
     app.register_blueprint(chat_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(doctor_bp)
 
     # Exempt chat from CSRF (JSON API)
     csrf.exempt(chat_bp)
@@ -47,35 +48,66 @@ def create_app(env=None):
 
 def _seed_data(app):
     from models import Doctor, User
+    from extensions import db
 
-    # Seed doctors
-    if Doctor.query.count() == 0:
-        doctors = [
-            Doctor(name="Dr. Mehta", specialty="Cardiologist",
-                   hospital="Indira Gandhi Govt Medical College & Hospital", lat=21.1435, lng=79.0850),
-            Doctor(name="Dr. Rao", specialty="General Physician",
-                   hospital="Gandhi Hospital", lat=21.1410, lng=79.0710),
-            Doctor(name="Dr. Kapoor", specialty="Orthopedic Surgeon",
-                   hospital="Deshmukh Hospital", lat=21.1230, lng=79.0420),
-            Doctor(name="Dr. Singh", specialty="Neurologist",
-                   hospital="Nectar Hospital", lat=21.13438, lng=79.07505),
-            Doctor(name="Dr. Iyer", specialty="Pulmonologist",
-                   hospital="Orange City Hospital & Research Institute", lat=21.1088, lng=79.0511),
-        ]
-        from extensions import db
-        db.session.add_all(doctors)
-        db.session.commit()
-        app.logger.info("Seeded %d doctors.", len(doctors))
-
-    # Seed admin
+    # Seed admin first
     admin_email = app.config["ADMIN_EMAIL"]
     if not User.query.filter_by(email=admin_email).first():
-        from extensions import db
-        admin = User(name="Admin", email=admin_email, is_admin=True)
+        admin = User(name="Admin", email=admin_email, is_admin=True, role="admin")
         admin.set_password(app.config["ADMIN_PASSWORD"])
         db.session.add(admin)
         db.session.commit()
         app.logger.info("Admin account created: %s", admin_email)
+
+    # Seed doctors and their users
+    if Doctor.query.count() == 0:
+        base_hospitals = [
+            ("Indira Gandhi Govt Medical College", 21.1435, 79.0850),
+            ("Gandhi Hospital", 21.1410, 79.0710),
+            ("Deshmukh Hospital", 21.1230, 79.0420),
+            ("Nectar Hospital", 21.13438, 79.07505),
+            ("Orange City Hospital", 21.1088, 79.0511),
+            ("Wockhardt Hospital", 21.1402, 79.0683)
+        ]
+
+        doc_data = [
+            ("Dr. Mehta", "Cardiologist", 0),
+            ("Dr. Rao", "General Physician", 1),
+            ("Dr. Kapoor", "Orthopedic Surgeon", 2),
+            ("Dr. Singh", "Neurologist", 3),
+            ("Dr. Iyer", "Pulmonologist", 4),
+            ("Dr. Joshi", "General Physician", 5),
+            ("Dr. Patil", "Pediatrician", 0),
+            ("Dr. Kulkarni", "Dermatologist", 1),
+            ("Dr. Sharma", "General Physician", 2),
+            ("Dr. Verma", "Psychiatrist", 3),
+            ("Dr. Desai", "Cardiologist", 4),
+            ("Dr. Gupta", "Pediatrician", 5),
+            ("Dr. Naidu", "General Physician", 0),
+            ("Dr. Reddy", "Neurologist", 1),
+            ("Dr. Chauhan", "Orthopedic Surgeon", 2),
+        ]
+
+        for i, (d_name, d_spec, h_idx) in enumerate(doc_data):
+            h_name, lat, lng = base_hospitals[h_idx]
+            doc_email = f"doctor{i+1}@medapp.com"
+            doc_user = User(name=d_name, email=doc_email, role="doctor")
+            doc_user.set_password("Doctor@123")
+            db.session.add(doc_user)
+            db.session.flush() # Flush to get doc_user.id
+
+            doc = Doctor(
+                name=d_name, 
+                specialty=d_spec,
+                hospital=h_name, 
+                lat=lat, 
+                lng=lng,
+                user_id=doc_user.id
+            )
+            db.session.add(doc)
+            
+        db.session.commit()
+        app.logger.info("Seeded %d doctors with login accounts.", len(doc_data))
 
 
 if __name__ == "__main__":

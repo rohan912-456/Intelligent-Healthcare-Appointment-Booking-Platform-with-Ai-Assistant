@@ -24,13 +24,15 @@ SYSTEM_PROMPT = (
 )
 
 
-def get_openai_client():
-    api_key = current_app.config.get("OPENAI_API_KEY", "")
-    if not api_key or api_key == "YOUR_OPENAI_KEY_HERE":
+def get_gemini_client():
+    api_key = current_app.config.get("GEMINI_API_KEY", "")
+    if not api_key or api_key == "YOUR_GEMINI_KEY_HERE":
         return None
     try:
-        from openai import OpenAI
-        return OpenAI(api_key=api_key)
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        # Using the specific version requested by the user and available in their key
+        return genai.GenerativeModel("gemini-3.1-flash-lite-preview")
     except Exception:
         return None
 
@@ -50,17 +52,18 @@ def message():
     if not user_text:
         return jsonify({"reply": "Invalid message."}), 400
 
-    # Maintain conversation history in session (last 10 turns = 20 messages)
+    # Maintain conversation history in session
+    # Format: {"role": "user"/"assistant", "content": "..."}
     history = session.get("chat_history", [])
     history.append({"role": "user", "content": user_text})
     if len(history) > 20:
         history = history[-20:]
 
-    client = get_openai_client()
-    if client is None:
+    model = get_gemini_client()
+    if model is None:
         session["chat_history"] = history
         reply = (
-            "AI assistant is not configured yet. Please add your OpenAI API key to the .env file. "
+            "AI assistant is not configured yet. Please add your GEMINI_API_KEY to the .env file. "
             "In the meantime, you can browse our doctors and book an appointment directly!"
         )
         history.append({"role": "assistant", "content": reply})
@@ -68,20 +71,34 @@ def message():
         return jsonify({"reply": reply})
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}] + history,
-            max_tokens=200,
-            temperature=0.7,
+        # Map existing history to Gemini format (role: user/model, parts: [str])
+        gemini_history = []
+        # System prompt as the very first message if history is empty or as context
+        # In Gemini 1.5, we can use system_instruction in the model constructor
+        # but here we'll just prepend it or use a simplified approach
+        
+        for turn in history[:-1]: # All except the current message
+            role = "user" if turn["role"] == "user" else "model"
+            gemini_history.append({"role": role, "parts": [turn["content"]]})
+
+        # Re-initialize model with system instruction
+        import google.generativeai as genai
+        model = genai.GenerativeModel(
+            model_name="gemini-3.1-flash-lite-preview",
+            system_instruction=SYSTEM_PROMPT
         )
-        reply = response.choices[0].message.content.strip()
+        
+        chat = model.start_chat(history=gemini_history)
+        response = chat.send_message(user_text)
+        
+        reply = response.text.strip()
         history.append({"role": "assistant", "content": reply})
         session["chat_history"] = history
         session.modified = True
         return jsonify({"reply": reply})
 
     except Exception as e:
-        logger.error("OpenAI error: %s", e)
+        logger.error("Gemini error: %s", e)
         return jsonify({"reply": "Sorry, I'm having trouble connecting right now. Please try again in a moment."}), 200
 
 
